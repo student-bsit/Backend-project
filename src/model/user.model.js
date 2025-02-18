@@ -2,6 +2,8 @@ const bcrypt=require('bcrypt')
 
 const {mongoose,Schema}=require('mongoose')
 
+const jwt=require('jsonwebtoken')
+
 const userSchema=new Schema(
     {
         username:{
@@ -57,8 +59,32 @@ const userSchema=new Schema(
     })
 
 
-    userSchema.method.isPasswordCorrect=async function(password){
+    userSchema.methods.isPasswordCorrect=async function(password){
         return await bcrypt.compare(password,this.password)
     }
+
+    userSchema.methods.AccessToken=function(){
+        return jwt.sign({// payload
+            _id:this.id,
+            email:this.email,
+            username:this.username,
+            fullname:this.fullname
+        },
+        process.env.ACCESS_TOKEN_SECRET,// secret key
+        {// option
+            Expiry:process.env.ACCESS_TOKEN_EXPIRY
+        }
+    )}
+
+    userSchema.methods.refershToken=function(){
+        return jwt.sign({
+            _id:this.id,
+            email:this.email
+        },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            Expiry:process.env.REFRESH_TOKEN_EXPIRY
+        }
+    )}
 
     module.exports = mongoose.model('User', userSchema);
