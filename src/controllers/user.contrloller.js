@@ -138,4 +138,4 @@ const loginUser=asyncHandler(async(req,res)=>{
      )
 })
 
-module.exports=registerUser 
+module.exports={registerUser,loginUser} 
