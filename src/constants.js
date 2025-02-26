@@ -1,1 +1,1 @@
-export const DB_NAME="Project"
+export const DB_NAME="Learning"

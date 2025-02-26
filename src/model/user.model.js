@@ -43,8 +43,8 @@ const userSchema=new Schema(
             type:String,
             required:[true,"password is required"]
         },
-        refershToken:{
-            type:string
+        refreshToken:{
+            type:String
         }
     }
     ,{timestamps:true})
