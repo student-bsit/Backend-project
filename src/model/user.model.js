@@ -50,11 +50,10 @@ const userSchema=new Schema(
     ,{timestamps:true})
 
 
-    userSchema.pre("save",async function(next){
-        if(!this.isModified("password")){
-            return next()
-        }
-        this.password= await bcrypt.hash(this.password,10)
+    userSchema.pre("save", async function (next) {
+        if(!this.isModified("password")) return next();
+    
+        this.password = await bcrypt.hash(this.password, 10)
         next()
     })
 
@@ -63,28 +62,33 @@ const userSchema=new Schema(
         return await bcrypt.compare(password,this.password)
     }
 
-    userSchema.methods.AccessToken=function(){
-        return jwt.sign({// payload
-            _id:this.id,
-            email:this.email,
-            username:this.username,
-            fullname:this.fullname
-        },
-        process.env.ACCESS_TOKEN_SECRET,// secret key
-        {// option
-            Expiry:process.env.ACCESS_TOKEN_EXPIRY
-        }
-    )}
+    userSchema.methods.generateaccessToken = function () {
+        return jwt.sign(
+            { // Payload
+                _id: this._id,
+                email: this.email,
+                username: this.username,
+                fullname: this.fullname
+            },
+            process.env.ACCESS_TOKEN_SECRET, // Secret key
+            { // Options
+                expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+            }
+        ); // ✅ Fixed closing parenthesis
+    };
+    
 
-    userSchema.methods.refershToken=function(){
-        return jwt.sign({
-            _id:this.id,
-            email:this.email
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            Expiry:process.env.REFRESH_TOKEN_EXPIRY
-        }
-    )}
+    userSchema.methods.generaterefreshToken = function () {  
+        return jwt.sign(  
+            {  
+                _id: this._id 
+            },  
+            process.env.REFRESH_TOKEN_SECRET,  
+            {  
+                expiresIn: process.env.REFRESH_TOKEN_EXPIRY  
+            }  
+        ); // ✅ Closing parenthesis added  
+    };
+    
 
     module.exports = mongoose.model('User', userSchema);
