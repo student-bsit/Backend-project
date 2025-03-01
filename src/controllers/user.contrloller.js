@@ -174,4 +174,51 @@ const logoutUser=asyncHandler(async(req,res)=>{
     )
 })
 
+
+const refreshAccessToken=asyncHandler(async(req,res)=>{
+    try {
+        const incomingToken=req.cookies.refreshToken 
+    
+        if(!incomingToken){
+            throw new ApiError(401,"unauthorized access")
+        }
+    
+        const decodedToken=jwt.verify(incomingToken,
+            process.env.REFRESH_TOKEN_SECRET
+        )
+    
+       const user=await User.findById(decodedToken._id)
+    
+       if(!user){
+        throw new ApiError(401,"unauthorized access")
+       }
+    
+       if(!incomingToken==user?.refreshToken){
+        throw new ApiError(401,"unauthorized access")
+       }
+    
+    const options={
+        htttpOnly:true,
+        secure:true
+    }
+    
+    const {accessToken,refreshToken}=await a(user._id)
+    
+    return res.status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResp(
+            200,
+            {
+                accessToken,refreshToken
+            },
+            "Access token refreshed"
+        )
+    )
+}
+    catch (error) {
+        
+    }
+})
 module.exports={registerUser,loginUser,logoutUser} 
