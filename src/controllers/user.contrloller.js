@@ -6,7 +6,7 @@ const uploadOnCloudinary=require('../utils/cloudinary')
 const jwt=require('jsonwebtoken')
 const ApiErr = require('../utils/ApiError')
 
-const a = async(userId) =>{
+const generateAccessAndRefreshToken = async(userId) =>{
     try {
         const user = await User.findById(userId)
         const accessToken = user.generateaccessToken()
@@ -119,7 +119,7 @@ const loginUser=asyncHandler(async(req,res)=>{
     }
 
     console.log("User ID before generating tokens:", user._id);
-    const {accessToken,refreshToken}= await a(user._id)
+    const {accessToken,refreshToken}= await generateAccessAndRefreshToken(user._id)
     
     const loggedInUser=await User.findById(user._id).select("-password -refreshToken")
 
@@ -202,7 +202,7 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
         secure:true
     }
     
-    const {accessToken,refreshToken}=await a(user._id)
+    const {accessToken,refreshToken}=await generateAccessAndRefreshToken(user._id)
     
     return res.status(200)
     .cookie("accessToken",accessToken,options)
