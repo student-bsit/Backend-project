@@ -6,8 +6,8 @@ const asyncHandler=require('../utils/asyncHandler')
 
 const verifyJwt= asyncHandler(async (req,res,next)=>{
     try {
-        const token=req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
-    
+        const token = req.cookies?.accessToken 
+        console.log("token is :",token)
         if(!token){
             throw new ApiError(401,"invalid user")
         }

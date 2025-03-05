@@ -5,6 +5,7 @@ const User=require('../model/user.model')
 const uploadOnCloudinary=require('../utils/cloudinary')
 const jwt=require('jsonwebtoken')
 const ApiErr = require('../utils/ApiError')
+const {  mongoose } = require('mongoose')
 
 const generateAccessAndRefreshToken = async(userId) =>{
     try {
@@ -147,8 +148,8 @@ const logoutUser=asyncHandler(async(req,res)=>{
 
     await User.findByIdAndUpdate(req._id,
         {
-          $set:{
-            refreshToken:undefined
+          $unset:{
+            refreshToken:1
           }  
         },
         {
@@ -410,6 +411,62 @@ const getChanelProfile=asyncHandler(async(req,res)=>{
 })
 
 
+const getWatchHistory=asyncHandler(async(req,res)=>{
+    const user=await User.aggregate([
+            {
+                $match:{
+                    _id:new mongoose.Types.ObjectId(req.user._id)
+                }
+            },
+            {
+                $lookup:{
+                    from:"videos",
+                    localField:"watchHistory",
+                    foreignFeild:"_id",
+                    as:"watchHistory",
+                    pipeline:[
+                        {
+                            $lookup:{
+                                from:"users",
+                                localField:"owner",
+                                foreignFeild:"_id",
+                                as:"owner",
+                                pipeline:[
+                                    {
+                                        $project:{
+                                            fullname:1,
+                                            username:1,
+                                            avatar:1
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            addFields:{
+                                owner:{
+                                    $first:"$owner"
+                                }
+                            }
+                        }
+                    ]
+                }
+                
+            }
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new ApiResp(
+            200,
+            user[0].watchHistory,
+            "Watch history fetched successfully"
+        )
+    )
+
+})
+
 module.exports={
     registerUser,
     loginUser,
@@ -420,5 +477,6 @@ module.exports={
     updateAccountDetails,
     updateAvatarFile,
     updatecoverImageFile,
-    getChanelProfile
+    getChanelProfile,
+    getWatchHistory
 }
